@@ -22,19 +22,18 @@ jobs:
             curl \
             unzip \
             lib32z1 \
-            lib32ncurses6 \
             lib32stdc++6 \
             libc6-i386 \
-            libncurses5 \
             libstdc++6 \
             libpulse0 \
-            libasound2 \
             libxcomposite1 \
             libxcursor1 \
             libxdamage1 \
             libxi6 \
             libxtst6 \
-            libnss3
+            libnss3 \
+            libncurses6 \
+            libasound2t64
           
       - name: Set up Python
         uses: actions/setup-python@v4
