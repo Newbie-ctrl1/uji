@@ -37,6 +37,24 @@ jobs:
           echo "export ANDROID_STUDIO_ROOT=/usr/local/android-studio" >> $GITHUB_ENV
           echo "export PATH=$PATH:/usr/local/android-studio/bin" >> $GITHUB_ENV
           
+      - name: Setup Android SDK
+        run: |
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export PATH=$PATH:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
+          
+          # Install Command line tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip commandlinetools-linux-9477386_latest.zip
+          mkdir -p $ANDROID_HOME/cmdline-tools/latest
+          mv cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
+          
+          # Install required SDK packages
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
+          
+          # Verify installation
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed
+          
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -46,6 +64,7 @@ jobs:
       - name: Configure Flutter
         run: |
           flutter config --no-analytics
+          flutter config --android-sdk /usr/local/lib/android/sdk
           flutter doctor -v
           
       - name: Install dependencies
