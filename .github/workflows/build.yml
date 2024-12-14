@@ -47,6 +47,12 @@ jobs:
           
       - name: Install Android SDK
         uses: android-actions/setup-android@v3
+        
+      - name: Install Android Build Tools
+        run: |
+          sdkmanager --install "build-tools;30.0.3"
+          sdkmanager --install "platforms;android-30"
+          yes | sdkmanager --licenses
           
       - name: Build APK
         run: flet build apk
@@ -55,4 +61,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk 
+          path: build/app/outputs/flutter-apk/app-release.apk
