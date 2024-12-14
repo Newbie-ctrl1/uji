@@ -54,8 +54,26 @@ jobs:
           sdkmanager --install "platforms;android-30"
           yes | sdkmanager --licenses
           
-      - name: Build APK
-        run: flet build apk
+      - name: Debug Environment
+        run: |
+          echo "Python version:"
+          python --version
+          echo "Pip packages:"
+          pip list
+          echo "Flutter version:"
+          flutter --version
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          
+      - name: Build APK with Debug
+        run: |
+          echo "Starting APK build..."
+          flet build apk --verbose
+          echo "Build complete"
+          echo "Checking build output directory:"
+          ls -R build/
         
       - name: Upload APK
         uses: actions/upload-artifact@v3
