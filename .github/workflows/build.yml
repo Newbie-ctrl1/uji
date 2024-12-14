@@ -39,18 +39,27 @@ jobs:
           
       - name: Setup Android SDK
         run: |
+          # Set environment variables
           export ANDROID_HOME=/usr/local/lib/android/sdk
-          export PATH=$PATH:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
           
-          # Install Command line tools
+          # Download and install Command line tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
           unzip commandlinetools-linux-9477386_latest.zip
-          mkdir -p $ANDROID_HOME/cmdline-tools/latest
-          mv cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
+          
+          # Create proper directory structure
+          sudo mkdir -p $ANDROID_HOME/cmdline-tools
+          sudo mv cmdline-tools $ANDROID_HOME/cmdline-tools/latest_temp
+          sudo mv $ANDROID_HOME/cmdline-tools/latest_temp/* $ANDROID_HOME/cmdline-tools/
+          sudo rm -rf $ANDROID_HOME/cmdline-tools/latest_temp
           
           # Install required SDK packages
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
+          yes | sudo $ANDROID_HOME/cmdline-tools/bin/sdkmanager --sdk_root=$ANDROID_HOME "cmdline-tools;latest"
+          yes | sudo $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-33" "build-tools;33.0.0"
+          
+          # Accept licenses
+          yes | sudo $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME --licenses
           
           # Verify installation
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed
@@ -71,15 +80,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install flet flet-core
-          
-      - name: Install Android SDK
-        uses: android-actions/setup-android@v3
-        
-      - name: Install Android Build Tools
-        run: |
-          sdkmanager --install "build-tools;30.0.3"
-          sdkmanager --install "platforms;android-30"
-          yes | sdkmanager --licenses
           
       - name: Debug Environment
         run: |
