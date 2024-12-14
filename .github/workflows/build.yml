@@ -29,6 +29,14 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
           
+      - name: Install Android Studio
+        run: |
+          sudo apt-get install -y wget unzip
+          wget https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2023.1.1.26/android-studio-2023.1.1.26-linux.tar.gz
+          sudo tar -xzf android-studio-2023.1.1.26-linux.tar.gz -C /usr/local/
+          echo "export ANDROID_STUDIO_ROOT=/usr/local/android-studio" >> $GITHUB_ENV
+          echo "export PATH=$PATH:/usr/local/android-studio/bin" >> $GITHUB_ENV
+          
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -66,6 +74,8 @@ jobs:
           pwd
           echo "Directory contents:"
           ls -la
+          echo "Android Studio location:"
+          echo $ANDROID_STUDIO_ROOT
           
       - name: Build APK with Debug
         run: |
