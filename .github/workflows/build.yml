@@ -16,7 +16,25 @@ jobs:
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev ninja-build libgtk-3-dev
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            ninja-build \
+            curl \
+            unzip \
+            lib32z1 \
+            lib32ncurses6 \
+            lib32stdc++6 \
+            libc6-i386 \
+            libncurses5 \
+            libstdc++6 \
+            libpulse0 \
+            libasound2 \
+            libxcomposite1 \
+            libxcursor1 \
+            libxdamage1 \
+            libxi6 \
+            libxtst6 \
+            libnss3
           
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -31,38 +49,58 @@ jobs:
           
       - name: Install Android Studio
         run: |
-          sudo apt-get install -y wget unzip
+          # Download and extract Android Studio
           wget https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2023.1.1.26/android-studio-2023.1.1.26-linux.tar.gz
-          sudo tar -xzf android-studio-2023.1.1.26-linux.tar.gz -C /usr/local/
-          echo "export ANDROID_STUDIO_ROOT=/usr/local/android-studio" >> $GITHUB_ENV
-          echo "export PATH=$PATH:/usr/local/android-studio/bin" >> $GITHUB_ENV
+          sudo tar -xzf android-studio-2023.1.1.26-linux.tar.gz -C /opt/
+          
+          # Set environment variables
+          echo "ANDROID_STUDIO_HOME=/opt/android-studio" >> $GITHUB_ENV
+          echo "PATH=$PATH:/opt/android-studio/bin" >> $GITHUB_ENV
+          
+          # Create desktop entry
+          sudo tee /usr/share/applications/android-studio.desktop << EOF
+          [Desktop Entry]
+          Version=1.0
+          Type=Application
+          Name=Android Studio
+          Exec=/opt/android-studio/bin/studio.sh
+          Icon=/opt/android-studio/bin/studio.png
+          Terminal=false
+          StartupNotify=true
+          Categories=Development;IDE;
+          EOF
+          
+          # Set permissions
+          sudo chmod +x /opt/android-studio/bin/studio.sh
           
       - name: Setup Android SDK
         run: |
           # Set environment variables
-          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_HOME=/opt/android/sdk
           echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
           echo "PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
+          
+          # Create SDK directory
+          sudo mkdir -p $ANDROID_HOME
+          sudo chown -R $USER:$USER $ANDROID_HOME
           
           # Download and install Command line tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
           unzip commandlinetools-linux-9477386_latest.zip
-          
-          # Create proper directory structure
-          sudo mkdir -p $ANDROID_HOME/cmdline-tools
-          sudo mv cmdline-tools $ANDROID_HOME/cmdline-tools/latest_temp
-          sudo mv $ANDROID_HOME/cmdline-tools/latest_temp/* $ANDROID_HOME/cmdline-tools/
-          sudo rm -rf $ANDROID_HOME/cmdline-tools/latest_temp
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          mv cmdline-tools $ANDROID_HOME/cmdline-tools/latest
           
           # Install required SDK packages
-          yes | sudo $ANDROID_HOME/cmdline-tools/bin/sdkmanager --sdk_root=$ANDROID_HOME "cmdline-tools;latest"
-          yes | sudo $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-33" "build-tools;33.0.0"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME \
+            "platform-tools" \
+            "platforms;android-33" \
+            "build-tools;33.0.0" \
+            "extras;android;m2repository" \
+            "extras;google;m2repository" \
+            "cmdline-tools;latest"
           
           # Accept licenses
-          yes | sudo $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME --licenses
-          
-          # Verify installation
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME --licenses
           
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -73,7 +111,8 @@ jobs:
       - name: Configure Flutter
         run: |
           flutter config --no-analytics
-          flutter config --android-sdk /usr/local/lib/android/sdk
+          flutter config --android-sdk /opt/android/sdk
+          flutter config --android-studio-dir /opt/android-studio
           flutter doctor -v
           
       - name: Install dependencies
