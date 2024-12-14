@@ -72,6 +72,17 @@ jobs:
           # Set permissions
           sudo chmod +x /opt/android-studio/bin/studio.sh
           
+      - name: Install Android Studio Plugins
+        run: |
+          # Download plugins
+          mkdir -p /opt/android-studio/plugins
+          wget -O flutter.zip "https://plugins.jetbrains.com/plugin/download?rel=true&updateId=357737"
+          wget -O dart.zip "https://plugins.jetbrains.com/plugin/download?rel=true&updateId=357492"
+          
+          # Install plugins
+          unzip -o flutter.zip -d /opt/android-studio/plugins/
+          unzip -o dart.zip -d /opt/android-studio/plugins/
+          
       - name: Setup Android SDK
         run: |
           # Set environment variables
@@ -100,6 +111,22 @@ jobs:
           
           # Accept licenses
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME --licenses
+          
+      - name: Setup Project Structure
+        run: |
+          # Create project structure
+          mkdir -p simple-counter/src
+          
+          # Move files to correct location
+          if [ -f "main.py" ]; then
+            mv main.py simple-counter/src/
+          fi
+          if [ -f "pyproject.toml" ]; then
+            mv pyproject.toml simple-counter/
+          fi
+          
+          # Verify structure
+          tree simple-counter/
           
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
